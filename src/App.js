@@ -229,6 +229,27 @@ export default function DiagnosticoLogistico() {
     if (!lead.name || !lead.email || !lead.company) return;
     const { s, avg } = calcScores();
     setStep("results");
+ 
+    const nivel = avg >= 76 ? "Gestionado" : avg >= 56 ? "Definido" : avg >= 31 ? "En Desarrollo" : "Inicial";
+    try {
+      fetch("https://script.google.com/macros/s/AKfycbzxMcoRGjnMZ2GdHzdVK0sJWooTKcmGkBWMdcYTQ1QtPzaY85FUuUx1aATNAZs32Lm7/exec", {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fecha: new Date().toLocaleString("es-EC"),
+          nombre: lead.name,
+          cargo: lead.role || "No especificado",
+          empresa: lead.company,
+          correo: lead.email,
+          puntaje: avg + "%",
+          nivel: nivel
+        })
+      });
+    } catch(e) {
+      console.log("Error enviando lead:", e);
+    }
+ 
     await generateAIAnalysis(s, avg);
   };
  
