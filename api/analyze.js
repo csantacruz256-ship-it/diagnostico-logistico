@@ -8,34 +8,31 @@ export default async function handler(req, res) {
 
   const { company, role, avg, dimSummary, weakDims, strongDims } = req.body;
 
-  const prompt = `Eres Christian Santacruz, experto en gestión por procesos logísticos, BASC e ISO 9001.
+  const prompt = `Eres Christian Santacruz, experto en logística y procesos. Genera un diagnóstico BREVE y COMPLETO. Máximo 250 palabras en total.
 
-Diagnóstico de madurez logística completado:
-EMPRESA: ${company}
-CARGO: ${role || "No especificado"}
-PUNTAJE GLOBAL: ${avg}%
-DIMENSIONES:
-${dimSummary}
-CRÍTICAS (bajo 50%): ${weakDims.length > 0 ? weakDims.join(", ") : "Ninguna"}
-FORTALEZAS (sobre 75%): ${strongDims.length > 0 ? strongDims.join(", ") : "Ninguna aún"}
+Datos:
+- Empresa: ${company} | Puntaje: ${avg}%
+- Críticas: ${weakDims.length > 0 ? weakDims.join(", ") : "Ninguna"}
+- Fortalezas: ${strongDims.length > 0 ? strongDims.join(", ") : "Ninguna aún"}
+- Detalle: ${dimSummary}
 
-Responde EXACTAMENTE con este formato. Sé conciso — máximo 2 oraciones por punto:
+Responde SOLO con este formato, sin agregar nada extra:
 
-**DIAGNÓSTICO EJECUTIVO**
-[2 oraciones sobre la situación actual]
+**DIAGNÓSTICO**
+[1 oración directa sobre la situación de ${company}]
 
-**HALLAZGOS CRÍTICOS**
-- [Hallazgo 1: 1 oración]
-- [Hallazgo 2: 1 oración]
-- [Hallazgo 3: 1 oración]
+**HALLAZGOS**
+- [Hallazgo crítico 1 — 1 oración]
+- [Hallazgo crítico 2 — 1 oración]
+- [Hallazgo crítico 3 — 1 oración]
 
-**PLAN DE ACCIÓN PRIORITARIO**
-1. [Acción 1 — plazo — referencia ISO/BASC: 2 oraciones máximo]
-2. [Acción 2 — plazo — referencia ISO/BASC: 2 oraciones máximo]
-3. [Acción 3 — plazo — referencia ISO/BASC: 2 oraciones máximo]
+**ACCIONES**
+1. [Acción 1 + plazo] — Ref. ISO/BASC
+2. [Acción 2 + plazo] — Ref. ISO/BASC
+3. [Acción 3 + plazo] — Ref. ISO/BASC
 
 **CONCLUSIÓN**
-[3 oraciones completas. La última debe ser motivadora y mencionar a ${company}.]`;
+[2 oraciones completas. Termina mencionando a ${company}.]`;
 
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -47,7 +44,7 @@ Responde EXACTAMENTE con este formato. Sé conciso — máximo 2 oraciones por p
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 1500,
+        max_tokens: 800,
         messages: [{ role: "user", content: prompt }],
       }),
     });
