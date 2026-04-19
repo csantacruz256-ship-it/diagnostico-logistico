@@ -33,22 +33,17 @@ function RadarChartSVG({ data, scores }) {
  
   return (
     <svg width="100%" viewBox={`0 0 ${size} ${size}`} style={{ maxWidth: 320, margin: "0 auto", display: "block" }}>
-      {/* Grid */}
       {gridPolygons.map((pts, l) => (
         <polygon key={l} points={pts} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={1} />
       ))}
-      {/* Axes */}
       {data.map((_, i) => {
         const p = getPoint(i, radius);
         return <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke="rgba(255,255,255,0.06)" strokeWidth={1} />;
       })}
-      {/* Data polygon */}
       <path d={dataPath} fill="rgba(0,212,170,0.2)" stroke="#00D4AA" strokeWidth={2} strokeLinejoin="round" />
-      {/* Data points */}
       {dataPoints.map((p, i) => (
         <circle key={i} cx={p.x} cy={p.y} r={4} fill="#00D4AA" stroke="#0A0E1A" strokeWidth={2} />
       ))}
-      {/* Labels */}
       {data.map((d, i) => {
         const angle = getAngle(i);
         const labelR = radius + 26;
@@ -63,7 +58,6 @@ function RadarChartSVG({ data, scores }) {
           </text>
         );
       })}
-      {/* Score labels on points */}
       {dataPoints.map((p, i) => {
         const score = scores[data[i].id] || 0;
         if (score === 0) return null;
@@ -168,7 +162,7 @@ const LEVELS = [
 ];
  
 export default function DiagnosticoLogistico() {
-  const [step, setStep] = useState("intro"); // intro | checklist | lead | results
+  const [step, setStep] = useState("intro");
   const [currentDim, setCurrentDim] = useState(0);
   const [answers, setAnswers] = useState({});
   const [lead, setLead] = useState({ name: "", company: "", email: "", role: "" });
@@ -252,80 +246,34 @@ export default function DiagnosticoLogistico() {
  
     await generateAIAnalysis(s, avg);
   };
- 
+
+  // ─── FUNCIÓN ACTUALIZADA — llama a Vercel serverless ───
   const generateAIAnalysis = async (s, avg) => {
     setIsLoadingAI(true);
     const dimSummary = DIMENSIONS.map(d => `- ${d.label}: ${s[d.id]}%`).join("\n");
     const weakDims = DIMENSIONS.filter(d => s[d.id] < 50).map(d => d.label);
     const strongDims = DIMENSIONS.filter(d => s[d.id] >= 75).map(d => d.label);
- 
-    const prompt = `Eres Christian Santacruz, Ingeniero en Transporte y Logística, Coordinador de Despacho con experiencia real en PRONACA Ecuador, experto en gestión por procesos con enfoque en logística, supply chain y transporte. También tienes expertise en BASC e ISO 9001 aplicados a operaciones logísticas.
- 
-Una empresa acaba de completar un diagnóstico de madurez logística. Estos son sus resultados:
- 
-EMPRESA: ${lead.company}
-CARGO DEL EVALUADOR: ${lead.role || "No especificado"}
-PUNTAJE GLOBAL: ${avg}%
- 
-RESULTADOS POR DIMENSIÓN:
-${dimSummary}
- 
-DIMENSIONES CRÍTICAS (bajo 50%): ${weakDims.length > 0 ? weakDims.join(", ") : "Ninguna"}
-FORTALEZAS (sobre 75%): ${strongDims.length > 0 ? strongDims.join(", ") : "Ninguna aún"}
- 
-Genera un análisis ejecutivo profesional con este formato exacto:
- 
-**DIAGNÓSTICO EJECUTIVO**
-[2-3 oraciones que describan la situación actual de la empresa de forma directa y sin rodeos]
- 
-**HALLAZGOS CRÍTICOS**
-[3 hallazgos específicos basados en los datos, con lenguaje técnico logístico real]
- 
-**PLAN DE ACCIÓN PRIORITARIO**
-[3 acciones concretas y ejecutables, ordenadas por impacto, con referencia a ISO 9001 o BASC donde aplique]
- 
-**CONCLUSIÓN**
-[1 párrafo motivador que conecte la mejora de procesos con resultados de negocio reales]
- 
-Usa lenguaje técnico pero comprensible. Sé directo, específico y útil. No uses frases genéricas.`;
- 
+
     try {
-      // Análisis inteligente basado en puntajes reales
-      const nivelGlobal = avg >= 76 ? "avanzado" : avg >= 56 ? "intermedio" : avg >= 31 ? "en desarrollo" : "inicial";
-      
-      const criticas = weakDims.length > 0 ? weakDims.join(", ") : "ninguna dimensión crítica identificada";
-      const fuertes = strongDims.length > 0 ? strongDims.join(" y ") : "aún sin dimensiones destacadas";
- 
-      const diagnosticoMap = {
-        inicial: `La operación logística de **${lead.company}** presenta un nivel de madurez inicial (${avg}%), con procesos mayormente informales y alta dependencia de criterios individuales. Esto representa un riesgo operativo significativo y una oportunidad de mejora estructural inmediata. La ausencia de sistemas formales limita la capacidad de escalar, medir y controlar los procesos de forma sostenida.`,
-        "en desarrollo": `**${lead.company}** muestra un nivel de madurez en desarrollo (${avg}%), con procesos básicos establecidos pero sin estandarización ni medición consistente. La operación funciona pero con variabilidad significativa que afecta la confiabilidad del servicio. Existe una base sobre la cual construir un sistema de gestión logística robusto.`,
-        intermedio: `La operación de **${lead.company}** alcanza un nivel de madurez definido (${avg}%), con procesos documentados y aplicados en la mayoría de las dimensiones evaluadas. El reto actual es pasar de la ejecución operativa a la gestión por indicadores y la mejora continua sistemática.`,
-        avanzado: `**${lead.company}** demuestra un nivel de madurez gestionado (${avg}%), con procesos medidos, controlados y orientados a la mejora continua. La operación logística constituye una ventaja competitiva real. El foco debe estar en la optimización avanzada y la innovación de procesos.`
-      };
- 
-      const hallazgosMap = {
-        "Planificación y Despacho": `- **Planificación:** La programación de despachos carece de herramientas digitales y procedimientos formales, generando retrasos e ineficiencias operativas que impactan directamente el nivel de servicio al cliente interno y externo.`,
-        "Trazabilidad y Control de Flota": `- **Trazabilidad:** El control de flota en tiempo real es deficiente, limitando la capacidad de respuesta ante incidentes y la generación de evidencia para auditorías operativas y reportes de desempeño.`,
-        "Gestión de Indicadores (KPIs)": `- **KPIs:** La ausencia de indicadores formalmente definidos y medidos impide identificar desviaciones a tiempo, tomar decisiones basadas en datos y demostrar el valor de la gestión logística a la dirección.`,
-        "Seguridad Operativa y BASC": `- **Seguridad BASC:** Los controles de seguridad en la cadena logística presentan brechas críticas que exponen a la empresa a riesgos de contaminación de carga y posibles sanciones regulatorias.`,
-        "Calidad ISO 9001": `- **Calidad ISO 9001:** La gestión de no conformidades y auditorías internas no está sistematizada, lo que dificulta la trazabilidad de problemas recurrentes y la implementación de acciones correctivas efectivas.`,
-        "Gestión de Proveedores y Transporte": `- **Proveedores:** La evaluación y selección de transportistas carece de criterios formales y SLAs medibles, generando variabilidad en el servicio y dificultades para gestionar el desempeño de la flota externa.`
-      };
- 
-      const hallazgos = weakDims.length > 0 
-        ? weakDims.slice(0, 3).map(d => hallazgosMap[d] || `- **${d}:** Requiere atención prioritaria para alcanzar el estándar operativo requerido.`).join("\n")
-        : `- La operación muestra solidez en sus dimensiones principales.\n- Se recomienda enfocarse en optimización y benchmarking sectorial.\n- Preparar la organización para certificaciones formales (ISO 9001, BASC).`;
- 
-      const accionesSegunNivel = avg < 56 
-        ? `1. **Documentar procesos críticos** — Iniciar con planificación de despachos y control de flota, estableciendo procedimientos escritos y responsables definidos (alineado con ISO 9001 cláusula 8.1).\n2. **Implementar KPIs básicos** — Definir mínimo 5 indicadores operativos (OTIF, excesos de velocidad, cumplimiento de rutas) con medición semanal y tablero visible para el equipo.\n3. **Establecer controles BASC iniciales** — Implementar check-list de inspección de vehículos, registro de conductores y protocolo de verificación de carga para mitigar riesgo de contaminación.`
-        : `1. **Fortalecer el sistema de indicadores** — Migrar de medición manual a dashboard automatizado con alertas tempranas, conectando datos de flota con resultados de servicio al cliente.\n2. **Preparar auditoría ISO 9001** — Revisar la documentación de procesos contra los requisitos de la norma, especialmente gestión de no conformidades (cláusula 10.2) y revisión por la dirección (cláusula 9.3).\n3. **Elevar el nivel BASC** — Implementar evaluación formal de proveedores de transporte con criterios de seguridad, y establecer procedimiento de respuesta ante incidentes de seguridad en la cadena logística.`;
- 
-      const conclusion = `La mejora de la madurez logística en **${lead.company}** no es un ejercicio administrativo — es una palanca directa de competitividad. Cada punto porcentual de mejora en los procesos se traduce en menor variabilidad operativa, mejor experiencia del cliente y reducción de costos por reprocesos y errores. Con una hoja de ruta clara y el compromiso de la dirección, alcanzar el siguiente nivel de madurez es completamente realizable en un plazo de 6 a 12 meses.`;
- 
-      const analisis = `**DIAGNÓSTICO EJECUTIVO**\n${diagnosticoMap[nivelGlobal]}\n\n**HALLAZGOS CRÍTICOS**\n${hallazgos}\n\n**PLAN DE ACCIÓN PRIORITARIO**\n${accionesSegunNivel}\n\n**CONCLUSIÓN**\n${conclusion}`;
-      
-      setAiAnalysis(analisis);
+      const response = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          company: lead.company,
+          role: lead.role,
+          avg,
+          dimSummary,
+          weakDims,
+          strongDims,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Error en el servidor");
+
+      const data = await response.json();
+      setAiAnalysis(data.analysis || "No se pudo generar el análisis.");
     } catch (e) {
+      console.error("AI error:", e);
       setAiAnalysis("Error al generar el análisis. Por favor recarga la página e intenta nuevamente.");
     } finally {
       setIsLoadingAI(false);
@@ -412,7 +360,6 @@ Usa lenguaje técnico pero comprensible. Sé directo, específico y útil. No us
     label: { fontSize: 12, color: "#64748B", marginBottom: 6, display: "block", fontWeight: 600, letterSpacing: 0.5, textTransform: "uppercase" },
   };
  
-  // ─── INTRO ──────────────────────────────────────────────
   if (step === "intro") return (
     <div style={styles.app}>
       <div style={styles.glow} /><div style={styles.glow2} />
@@ -474,7 +421,6 @@ Usa lenguaje técnico pero comprensible. Sé directo, específico y útil. No us
     </div>
   );
  
-  // ─── CHECKLIST ──────────────────────────────────────────
   if (step === "checklist") return (
     <div style={styles.app}>
       <div style={styles.glow} /><div style={styles.glow2} />
@@ -490,12 +436,10 @@ Usa lenguaje técnico pero comprensible. Sé directo, específico y útil. No us
           <div style={{ fontSize: 13, color: "#64748B" }}>{globalProgress}% completado</div>
         </header>
  
-        {/* Progress bar */}
         <div style={{ height: 3, background: "rgba(255,255,255,0.07)", borderRadius: 2, margin: "20px 0 32px" }}>
           <div style={{ height: "100%", width: `${globalProgress}%`, background: "linear-gradient(90deg, #00D4AA, #A29BFE)", borderRadius: 2, transition: "width 0.4s" }} />
         </div>
  
-        {/* Dim tabs */}
         <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 20, scrollbarWidth: "none" }}>
           {DIMENSIONS.map((d, i) => {
             const dimAnswered = d.questions.every(q => answers[q.id] !== undefined);
@@ -515,7 +459,6 @@ Usa lenguaje técnico pero comprensible. Sé directo, específico y útil. No us
           })}
         </div>
  
-        {/* Current dimension */}
         <div style={{ ...styles.card, marginBottom: 24 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
             <span style={{ fontSize: 32 }}>{currentDimData.icon}</span>
@@ -563,7 +506,6 @@ Usa lenguaje técnico pero comprensible. Sé directo, específico y útil. No us
     </div>
   );
  
-  // ─── LEAD CAPTURE ───────────────────────────────────────
   if (step === "lead") return (
     <div style={styles.app}>
       <div style={styles.glow} /><div style={styles.glow2} />
@@ -613,7 +555,6 @@ Usa lenguaje técnico pero comprensible. Sé directo, específico y útil. No us
     </div>
   );
  
-  // ─── RESULTS ────────────────────────────────────────────
   if (step === "results") return (
     <div style={styles.app}>
       <div style={styles.glow} /><div style={styles.glow2} />
@@ -630,7 +571,6 @@ Usa lenguaje técnico pero comprensible. Sé directo, específico y útil. No us
         </header>
  
         <div style={{ padding: "32px 0 60px" }}>
-          {/* Score hero */}
           <div style={{ ...styles.card, textAlign: "center", marginBottom: 24, background: `linear-gradient(135deg, rgba(0,212,170,0.08), rgba(162,155,254,0.05))`, border: `1px solid rgba(0,212,170,0.2)` }}>
             <p style={{ margin: "0 0 8px", fontSize: 13, color: "#64748B", textTransform: "uppercase", letterSpacing: 1 }}>
               Resultado global · {lead.company}
@@ -644,13 +584,11 @@ Usa lenguaje técnico pero comprensible. Sé directo, específico y útil. No us
             <p style={{ color: "#94A3B8", fontSize: 14, margin: 0 }}>{level.desc}</p>
           </div>
  
-          {/* Radar chart SVG puro */}
           <div style={{ ...styles.card, marginBottom: 24 }}>
             <h3 style={{ margin: "0 0 20px", fontSize: 16, fontWeight: 700 }}>📊 Mapa de Madurez por Dimensión</h3>
             <RadarChartSVG data={DIMENSIONS} scores={scores} />
           </div>
  
-          {/* Scores by dimension */}
           <div style={{ ...styles.card, marginBottom: 24 }}>
             <h3 style={{ margin: "0 0 20px", fontSize: 16, fontWeight: 700 }}>Detalle por Dimensión</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -668,7 +606,6 @@ Usa lenguaje técnico pero comprensible. Sé directo, específico y útil. No us
             </div>
           </div>
  
-          {/* AI Analysis */}
           <div style={{ ...styles.card, marginBottom: 32, border: "1px solid rgba(0,212,170,0.2)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
               <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#00D4AA", boxShadow: "0 0 8px #00D4AA" }} />
@@ -687,7 +624,6 @@ Usa lenguaje técnico pero comprensible. Sé directo, específico y útil. No us
             )}
           </div>
  
-          {/* CTA */}
           <div style={{ ...styles.card, textAlign: "center", background: "linear-gradient(135deg, rgba(0,212,170,0.08), rgba(162,155,254,0.05))", border: "1px solid rgba(0,212,170,0.25)" }}>
             <div style={{ fontSize: 40, marginBottom: 12 }}>🚀</div>
             <h3 style={{ margin: "0 0 8px", fontSize: 20, fontWeight: 800 }}>¿Quieres llevar tu operación al siguiente nivel?</h3>
