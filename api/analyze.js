@@ -8,40 +8,34 @@ export default async function handler(req, res) {
 
   const { company, role, avg, dimSummary, weakDims, strongDims } = req.body;
 
-  const prompt = `Eres Christian Santacruz, Ingeniero en Transporte y Logística, Coordinador de Despacho con experiencia real en PRONACA Ecuador, experto en gestión por procesos con enfoque en logística, supply chain y transporte. También tienes expertise en BASC e ISO 9001 aplicados a operaciones logísticas.
+  const prompt = `Eres Christian Santacruz, experto en gestión por procesos logísticos, BASC e ISO 9001.
 
-Una empresa acaba de completar un diagnóstico de madurez logística. Estos son sus resultados:
-
+Diagnóstico de madurez logística completado:
 EMPRESA: ${company}
-CARGO DEL EVALUADOR: ${role || "No especificado"}
+CARGO: ${role || "No especificado"}
 PUNTAJE GLOBAL: ${avg}%
-
-RESULTADOS POR DIMENSIÓN:
+DIMENSIONES:
 ${dimSummary}
-
-DIMENSIONES CRÍTICAS (bajo 50%): ${weakDims.length > 0 ? weakDims.join(", ") : "Ninguna"}
+CRÍTICAS (bajo 50%): ${weakDims.length > 0 ? weakDims.join(", ") : "Ninguna"}
 FORTALEZAS (sobre 75%): ${strongDims.length > 0 ? strongDims.join(", ") : "Ninguna aún"}
 
-Genera un análisis ejecutivo profesional con este formato exacto. Es OBLIGATORIO completar TODAS las secciones hasta el final sin cortar ninguna oración:
+Responde EXACTAMENTE con este formato. Sé conciso — máximo 2 oraciones por punto:
 
 **DIAGNÓSTICO EJECUTIVO**
-[Escribe exactamente 3 oraciones completas que describan la situación actual de la empresa de forma directa y sin rodeos]
+[2 oraciones sobre la situación actual]
 
 **HALLAZGOS CRÍTICOS**
-[Escribe exactamente 3 hallazgos específicos basados en los datos, con lenguaje técnico logístico real. Cada hallazgo debe tener título en negrita y 2-3 oraciones de desarrollo]
+- [Hallazgo 1: 1 oración]
+- [Hallazgo 2: 1 oración]
+- [Hallazgo 3: 1 oración]
 
 **PLAN DE ACCIÓN PRIORITARIO**
-[Escribe exactamente 3 acciones concretas y ejecutables, ordenadas por impacto. Cada acción debe incluir: título, plazo estimado, pasos específicos y referencia a ISO 9001 o BASC donde aplique]
+1. [Acción 1 — plazo — referencia ISO/BASC: 2 oraciones máximo]
+2. [Acción 2 — plazo — referencia ISO/BASC: 2 oraciones máximo]
+3. [Acción 3 — plazo — referencia ISO/BASC: 2 oraciones máximo]
 
 **CONCLUSIÓN**
-[Escribe exactamente 1 párrafo de mínimo 4 oraciones completas que conecte la mejora de procesos con resultados de negocio reales para la empresa. Termina siempre con una oración de cierre motivadora.]
-
-REGLAS OBLIGATORIAS:
-- Completa el texto de CONCLUSIÓN con mínimo 4 oraciones. Nunca cortes a mitad de oración.
-- Usa lenguaje técnico pero comprensible.
-- Sé directo, específico y útil.
-- No uses frases genéricas.
-- Todas las secciones deben estar completas antes de terminar tu respuesta.`;
+[3 oraciones completas. La última debe ser motivadora y mencionar a ${company}.]`;
 
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -53,7 +47,7 @@ REGLAS OBLIGATORIAS:
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 8192,
+        max_tokens: 1500,
         messages: [{ role: "user", content: prompt }],
       }),
     });
