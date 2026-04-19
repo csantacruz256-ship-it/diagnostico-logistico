@@ -22,21 +22,26 @@ ${dimSummary}
 DIMENSIONES CRÍTICAS (bajo 50%): ${weakDims.length > 0 ? weakDims.join(", ") : "Ninguna"}
 FORTALEZAS (sobre 75%): ${strongDims.length > 0 ? strongDims.join(", ") : "Ninguna aún"}
 
-Genera un análisis ejecutivo profesional con este formato exacto:
+Genera un análisis ejecutivo profesional con este formato exacto. Es OBLIGATORIO completar TODAS las secciones hasta el final sin cortar ninguna oración:
 
 **DIAGNÓSTICO EJECUTIVO**
-[2-3 oraciones que describan la situación actual de la empresa de forma directa y sin rodeos]
+[Escribe exactamente 3 oraciones completas que describan la situación actual de la empresa de forma directa y sin rodeos]
 
 **HALLAZGOS CRÍTICOS**
-[3 hallazgos específicos basados en los datos, con lenguaje técnico logístico real]
+[Escribe exactamente 3 hallazgos específicos basados en los datos, con lenguaje técnico logístico real. Cada hallazgo debe tener título en negrita y 2-3 oraciones de desarrollo]
 
 **PLAN DE ACCIÓN PRIORITARIO**
-[3 acciones concretas y ejecutables, ordenadas por impacto, con referencia a ISO 9001 o BASC donde aplique]
+[Escribe exactamente 3 acciones concretas y ejecutables, ordenadas por impacto. Cada acción debe incluir: título, plazo estimado, pasos específicos y referencia a ISO 9001 o BASC donde aplique]
 
 **CONCLUSIÓN**
-[1 párrafo motivador que conecte la mejora de procesos con resultados de negocio reales]
+[Escribe exactamente 1 párrafo de mínimo 4 oraciones completas que conecte la mejora de procesos con resultados de negocio reales para la empresa. Termina siempre con una oración de cierre motivadora.]
 
-Usa lenguaje técnico pero comprensible. Sé directo, específico y útil. No uses frases genéricas.`;
+REGLAS OBLIGATORIAS:
+- Completa el texto de CONCLUSIÓN con mínimo 4 oraciones. Nunca cortes a mitad de oración.
+- Usa lenguaje técnico pero comprensible.
+- Sé directo, específico y útil.
+- No uses frases genéricas.
+- Todas las secciones deben estar completas antes de terminar tu respuesta.`;
 
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -48,7 +53,7 @@ Usa lenguaje técnico pero comprensible. Sé directo, específico y útil. No us
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 4096,
+        max_tokens: 8192,
         messages: [{ role: "user", content: prompt }],
       }),
     });
