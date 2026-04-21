@@ -1,21 +1,21 @@
 import { useState, useRef } from "react";
  
 function RadarChartSVG({ data, scores }) {
-  const size = 280;
+  const size = 420;
   const cx = size / 2;
   const cy = size / 2;
-  const radius = 100;
+  const radius = 120;
   const levels = 4;
   const total = data.length;
- 
+
   const angleStep = (2 * Math.PI) / total;
   const getAngle = (i) => i * angleStep - Math.PI / 2;
- 
+
   const getPoint = (i, r) => ({
     x: cx + r * Math.cos(getAngle(i)),
     y: cy + r * Math.sin(getAngle(i)),
   });
- 
+
   const gridPolygons = Array.from({ length: levels }, (_, l) => {
     const r = (radius * (l + 1)) / levels;
     return Array.from({ length: total }, (_, i) => {
@@ -23,16 +23,24 @@ function RadarChartSVG({ data, scores }) {
       return `${p.x},${p.y}`;
     }).join(" ");
   });
- 
+
   const dataPoints = data.map((d, i) => {
     const r = (radius * (scores[d.id] || 0)) / 100;
     return getPoint(i, r);
   });
- 
+
   const dataPath = dataPoints.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ") + "Z";
- 
+
+  // Divide el label en máximo 2 líneas inteligentemente
+  const splitLabel = (label) => {
+    const words = label.split(" ");
+    if (words.length <= 2) return [words.join(" "), ""];
+    const mid = Math.ceil(words.length / 2);
+    return [words.slice(0, mid).join(" "), words.slice(mid).join(" ")];
+  };
+
   return (
-    <svg width="100%" viewBox={`0 0 ${size} ${size}`} style={{ maxWidth: 320, margin: "0 auto", display: "block" }}>
+    <svg width="100%" viewBox={`0 0 ${size} ${size}`} style={{ maxWidth: 500, margin: "0 auto", display: "block" }}>
       {gridPolygons.map((pts, l) => (
         <polygon key={l} points={pts} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={1} />
       ))}
@@ -42,19 +50,20 @@ function RadarChartSVG({ data, scores }) {
       })}
       <path d={dataPath} fill="rgba(0,212,170,0.2)" stroke="#00D4AA" strokeWidth={2} strokeLinejoin="round" />
       {dataPoints.map((p, i) => (
-        <circle key={i} cx={p.x} cy={p.y} r={4} fill="#00D4AA" stroke="#0A0E1A" strokeWidth={2} />
+        <circle key={i} cx={p.x} cy={p.y} r={5} fill="#00D4AA" stroke="#0A0E1A" strokeWidth={2} />
       ))}
       {data.map((d, i) => {
         const angle = getAngle(i);
-        const labelR = radius + 26;
+        const labelR = radius + 42;
         const lx = cx + labelR * Math.cos(angle);
         const ly = cy + labelR * Math.sin(angle);
-        const anchor = lx < cx - 5 ? "end" : lx > cx + 5 ? "start" : "middle";
-        const shortLabel = d.label.split(" ").slice(0, 2).join(" ");
+        const anchor = lx < cx - 8 ? "end" : lx > cx + 8 ? "start" : "middle";
+        const [line1, line2] = splitLabel(d.label);
         return (
-          <text key={i} x={lx} y={ly} textAnchor={anchor} dominantBaseline="middle"
-            fill="#94A3B8" fontSize={9} fontWeight={600} fontFamily="DM Sans, sans-serif">
-            {d.icon} {shortLabel}
+          <text key={i} x={lx} y={ly} textAnchor={anchor}
+            fill="#94A3B8" fontSize={10} fontWeight={600} fontFamily="DM Sans, sans-serif">
+            <tspan x={lx} dy="-0.5em">{d.icon} {line1}</tspan>
+            {line2 && <tspan x={lx} dy="1.3em">{line2}</tspan>}
           </text>
         );
       })}
@@ -62,8 +71,8 @@ function RadarChartSVG({ data, scores }) {
         const score = scores[data[i].id] || 0;
         if (score === 0) return null;
         return (
-          <text key={i} x={p.x} y={p.y - 10} textAnchor="middle"
-            fill="#00D4AA" fontSize={9} fontWeight={700} fontFamily="DM Sans, sans-serif">
+          <text key={i} x={p.x} y={p.y - 12} textAnchor="middle"
+            fill="#00D4AA" fontSize={10} fontWeight={700} fontFamily="DM Sans, sans-serif">
             {score}%
           </text>
         );
