@@ -247,7 +247,6 @@ export default function DiagnosticoLogistico() {
     await generateAIAnalysis(s, avg);
   };
 
-  // ─── FUNCIÓN ACTUALIZADA — llama a Vercel serverless ───
   const generateAIAnalysis = async (s, avg) => {
     setIsLoadingAI(true);
     const dimSummary = DIMENSIONS.map(d => `- ${d.label}: ${s[d.id]}%`).join("\n");
@@ -281,16 +280,51 @@ export default function DiagnosticoLogistico() {
   };
  
   const level = getLevel(totalScore);
- 
+
+  // ── Convierte **texto** en <strong> dentro de cualquier línea ──
+  const renderBold = (text, keyPrefix) => {
+    const parts = text.split(/\*\*(.*?)\*\*/g);
+    return parts.map((part, i) =>
+      i % 2 === 1
+        ? <strong key={`${keyPrefix}-b${i}`} style={{ color: "#E2E8F0", fontWeight: 700 }}>{part}</strong>
+        : part
+    );
+  };
+
   const formatAnalysis = (text) => {
     return text.split("\n").map((line, i) => {
-      if (line.startsWith("**") && line.endsWith("**")) {
-        return <div key={i} style={{ fontWeight: 800, color: "#00D4AA", marginTop: 20, marginBottom: 6, fontSize: 13, letterSpacing: 1, textTransform: "uppercase" }}>{line.replace(/\*\*/g, "")}</div>;
+      // Título de sección: línea que es SOLO **TEXTO** (sin nada más)
+      if (/^\*\*[^*]+\*\*$/.test(line.trim())) {
+        return (
+          <div key={i} style={{ fontWeight: 800, color: "#00D4AA", marginTop: 20, marginBottom: 6, fontSize: 13, letterSpacing: 1, textTransform: "uppercase" }}>
+            {line.replace(/\*\*/g, "")}
+          </div>
+        );
       }
-      if (line.startsWith("- ") || line.match(/^\d\./)) {
-        return <div key={i} style={{ paddingLeft: 16, marginBottom: 6, borderLeft: "2px solid #00D4AA33", color: "#CBD5E1" }}>{line}</div>;
+      // Línea de sub-detalle indentada (detalle, Ref:, Entregable:)
+      if (line.startsWith("   ")) {
+        return (
+          <div key={i} style={{ paddingLeft: 32, marginBottom: 4, fontSize: 12, color: "#64748B", lineHeight: 1.6 }}>
+            {renderBold(line.trim(), i)}
+          </div>
+        );
       }
-      if (line.trim()) return <p key={i} style={{ color: "#94A3B8", marginBottom: 8, lineHeight: 1.7 }}>{line}</p>;
+      // Ítem de lista (guión o número)
+      if (line.startsWith("- ") || line.match(/^\d+\./)) {
+        return (
+          <div key={i} style={{ paddingLeft: 16, marginBottom: 8, borderLeft: "2px solid #00D4AA33", color: "#CBD5E1", lineHeight: 1.7 }}>
+            {renderBold(line, i)}
+          </div>
+        );
+      }
+      // Párrafo normal
+      if (line.trim()) {
+        return (
+          <p key={i} style={{ color: "#94A3B8", marginBottom: 8, lineHeight: 1.7 }}>
+            {renderBold(line, i)}
+          </p>
+        );
+      }
       return null;
     });
   };
